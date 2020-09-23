@@ -18,9 +18,14 @@ export default class DynamoCSS {
                 set: function (styleSheets) {
                     var cssRules = []
                     for (let styleSheet of styleSheets) {
-                        for (let cssRule of styleSheet.cssRules) {
-                            if (cssRule.cssText) cssRules.push(cssRule.cssText)
-                        } 
+                        try {
+                            styleSheet.cssRules
+                            for (let cssRule of styleSheet.cssRules) {
+                                if (cssRule.cssText) cssRules.push(cssRule.cssText)
+                            } 
+                        } catch {
+                            console.warn('Cannot access to stylesheet content loaded from a Cross-Domain')
+                        }
                     }
                     that.extractCssVariables(cssRules)
                     return adoptedStyleSheetsSetterShadowRoot.call(this, styleSheets)
@@ -34,9 +39,14 @@ export default class DynamoCSS {
                 set: function (styleSheets) {
                     var cssRules = []
                     for (let styleSheet of styleSheets) {
-                        for (let cssRule of styleSheet.cssRules) {
-                            if (cssRule.cssText) cssRules.push(cssRule.cssText)
-                        } 
+                        try {
+                            styleSheet.cssRules
+                            for (let cssRule of styleSheet.cssRules) {
+                                if (cssRule.cssText) cssRules.push(cssRule.cssText)
+                            } 
+                        } catch {
+                            console.warn('Cannot access to stylesheet content loaded from a Cross-Domain')
+                        }
                     }
                     that.extractCssVariables(cssRules)
                     return adoptedStyleSheetsSetterDocument.call(this, styleSheets)
@@ -63,9 +73,14 @@ export default class DynamoCSS {
             if (parent instanceof Document || parent instanceof ShadowRoot) {
                 if (!parent.adoptedStyleSheets) parent.adoptedStyleSheets = []
                 for (let styleSheet of [...parent.styleSheets, ...parent.adoptedStyleSheets]) {
-                    for (let cssRule of styleSheet.cssRules) {
-                        if (cssRule.cssText) cssRules.push(cssRule.cssText)
-                    } 
+                    try {
+                        styleSheet.cssRules
+                        for (let cssRule of styleSheet.cssRules) {
+                            if (cssRule.cssText) cssRules.push(cssRule.cssText)
+                        } 
+                    } catch {
+                        console.warn('Cannot access to stylesheet content loaded from a Cross-Domain')
+                    }
                 }
                 //Observe DOM/ShadowDOM Style Updates
                 this.observe(parent)

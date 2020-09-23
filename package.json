@@ -1,6 +1,6 @@
 {
   "name": "dynamo-css",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Make your css variables more dynamic with dynamo-css!",
   "main": "./src/js/DynamoCSS.js",
   "scripts": {
