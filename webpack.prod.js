@@ -8,7 +8,8 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin")
 module.exports = {
     mode: 'production',
     entry: {
-        index: './src/index.js'
+        bundle: './src/bundle.js',
+        demo: './src/demo.js'
     },
     output: {
         filename: '[name].[hash].js'
@@ -24,7 +25,7 @@ module.exports = {
             analyzerPort: 80
         }),
         new MiniCssExtractPlugin({ filename: "[name].[hash].css" }),
-        new HtmlWebpackPlugin({ template: "./src/index.html" }),
+        new HtmlWebpackPlugin({ template: "./src/demo.html" }),
         new CleanWebpackPlugin()
     ],
     module: {

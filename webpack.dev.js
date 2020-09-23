@@ -3,14 +3,15 @@ const autoprefixer = require('autoprefixer');
 module.exports = {
     mode: 'development',
     entry: {
-        index: './src/index.js'
+        bundle: './src/bundle.js',
+        demo: './src/demo.js'
     },
     output: {
         filename: '[name].[hash].js',
         publicPath: '/',
     },
     plugins: [
-        new HtmlWebpackPlugin({ template: "./src/index.html" })
+        new HtmlWebpackPlugin({ template: "./src/demo.html" })
     ],
     module: {
         rules: [

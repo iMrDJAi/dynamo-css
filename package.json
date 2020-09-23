@@ -1,9 +1,9 @@
 {
-  "name": "project",
+  "name": "dynamo-css",
   "version": "0.1.0",
-  "description": "",
+  "description": "Make your css variables more dynamic with dynamo-css!",
   "private": true,
-  "main": "",
+  "main": "./src/js/DynamoCSS.js",
   "scripts": {
     "start": "webpack-dev-server --config webpack.dev.js --open",
     "build": "webpack --config webpack.prod.js"
