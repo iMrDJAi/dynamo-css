@@ -2,7 +2,6 @@
   "name": "dynamo-css",
   "version": "0.1.0",
   "description": "Make your css variables more dynamic with dynamo-css!",
-  "private": true,
   "main": "./src/js/DynamoCSS.js",
   "scripts": {
     "start": "webpack-dev-server --config webpack.dev.js --open",
