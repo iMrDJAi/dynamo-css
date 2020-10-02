@@ -1,18 +1,27 @@
 {
   "name": "dynamo-css",
-  "version": "0.1.1",
-  "description": "Make your css variables more dynamic with dynamo-css!",
+  "version": "0.2.0",
+  "description": "Make your css variables more dynamic and relative with dynamo-css!",
   "main": "./src/js/DynamoCSS.js",
   "scripts": {
     "start": "webpack-dev-server --config webpack.dev.js --open",
     "build": "webpack --config webpack.prod.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "",
+  "keywords": [
+    "css",
+    "css-variables",
+    "css-custom-properties",
+    "theme",
+    "theming",
+    "dynamo-css",
+    "javascript",
+    "css-in-js"
+  ],
+  "author": "${Mr.DJA}",
+  "license": "MIT",
   "repository": {
-    "type": "",
-    "url": ""
+    "type": "git",
+    "url": "git+https://github.com/iMrDJAi/dynamo-css.git"
   },
   "devDependencies": {
     "@babel/core": "^7.10.5",
@@ -41,7 +50,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/iMrDJAi/dynamo-css/issues"
   },
-  "homepage": ""
+  "homepage": "https://github.com/iMrDJAi/dynamo-css#readme"
 }

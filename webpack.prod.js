@@ -12,7 +12,7 @@ module.exports = {
         demo: './src/demo.js'
     },
     output: {
-        filename: '[name].[hash].js'
+        filename: '[name].js'
     },
     optimization: {
         minimizer: [
@@ -24,7 +24,7 @@ module.exports = {
         new BundleAnalyzerPlugin({
             analyzerPort: 80
         }),
-        new MiniCssExtractPlugin({ filename: "[name].[hash].css" }),
+        new MiniCssExtractPlugin({ filename: "[name].css" }),
         new HtmlWebpackPlugin({ template: "./src/demo.html" }),
         new CleanWebpackPlugin()
     ],

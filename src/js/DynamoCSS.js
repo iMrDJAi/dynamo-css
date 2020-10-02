@@ -1,14 +1,14 @@
 export default class DynamoCSS {
     constructor() {
-        this.cssVariables = []
-        this.registerdFunctions = {}
-        this.scanCss(document)
+        this.variables = []
+        this.functions = {}
+        this.scan(document)
         var that = this
 
         var attachShadow = HTMLElement.prototype.attachShadow
         HTMLElement.prototype.attachShadow = function (option) {
             var sh = attachShadow.call(this, option)
-            that.observe(sh)
+            that.#observe(sh)
             return sh
         }
 
@@ -24,10 +24,10 @@ export default class DynamoCSS {
                                 if (cssRule.cssText) cssRules.push(cssRule.cssText)
                             } 
                         } catch {
-                            console.warn('Cannot access to stylesheet content loaded from a Cross-Domain')
+                            console.warn('Cannot access to stylesheet content')
                         }
                     }
-                    that.extractCssVariables(cssRules)
+                    that.#extract(cssRules)
                     return adoptedStyleSheetsSetterShadowRoot.call(this, styleSheets)
                 }
             })
@@ -45,31 +45,28 @@ export default class DynamoCSS {
                                 if (cssRule.cssText) cssRules.push(cssRule.cssText)
                             } 
                         } catch {
-                            console.warn('Cannot access to stylesheet content loaded from a Cross-Domain')
+                            console.warn('Cannot access to stylesheet content')
                         }
                     }
-                    that.extractCssVariables(cssRules)
+                    that.#extract(cssRules)
                     return adoptedStyleSheetsSetterDocument.call(this, styleSheets)
                 }
             })
         }
     }
 
-    scanCss(parent) {
+    scan(parent) {
         if (parent instanceof Document || parent instanceof ShadowRoot || parent instanceof Element) {
-            //CSS Rules
             var cssRules = []
 
-            //Style Attributes
             var elements = Array.from(parent.querySelectorAll('*'))
             if (parent instanceof Element) elements.push(parent)
             
             for (let element of elements) {
                 if (element.style.cssText) cssRules.push(element.style.cssText)
-                if (element.shadowRoot) this.scanCss(element.shadowRoot)
+                if (element.shadowRoot) this.scan(element.shadowRoot)
             }
 
-            //CSS Classes
             if (parent instanceof Document || parent instanceof ShadowRoot) {
                 if (!parent.adoptedStyleSheets) parent.adoptedStyleSheets = []
                 for (let styleSheet of [...parent.styleSheets, ...parent.adoptedStyleSheets]) {
@@ -79,56 +76,40 @@ export default class DynamoCSS {
                             if (cssRule.cssText) cssRules.push(cssRule.cssText)
                         } 
                     } catch {
-                        console.warn('Cannot access to stylesheet content loaded from a Cross-Domain')
+                        console.warn('Cannot access to stylesheet content')
                     }
                 }
-                //Observe DOM/ShadowDOM Style Updates
-                this.observe(parent)
+                this.#observe(parent)
+            } else if (parent instanceof Element) {
+                var styles = Array.from(parent.querySelectorAll('style'))
+
+                for (let style of styles) {
+                    for (let cssRule of style.sheet.cssRules) {
+                        if (cssRule.cssText) cssRules.push(cssRule.cssText)
+                    }
+                }
             }
 
-            //Extract CSS Variables From CSS Rules
-            this.extractCssVariables(cssRules)
+            this.#extract(cssRules)
         }
     }
 
-    extractCssVariables(cssRules) {
-        const oldLength = this.cssVariables.length
-        //CSS Variables
-        var matches = cssRules.toString().match(/(?:var\()(?: *)(--.+?)(?: *)?(?:,|\))/g)
-        if (matches) {
-            this.cssVariables = [
-                //Prevent Duplication
-                ...new Set(
-                    [
-                        //Remove The Unwanted Parts: => var( <= --css-variable => ...) <=
-                        ...matches.map(m => m.replace(/^(?:var\()(?: *)/g, '').replace(/(?: *)?(?:,|\))$/g, '')),
-                        //Include Old CSS Variables
-                        ...this.cssVariables
-                    ]
-                )
-            ]
-        }
-        const newLength = this.cssVariables.length
-        if (oldLength !== newLength) this.executeCssVariables()
-    }
-
-    observe(DOM) {
-        if (!DOM.observed && (DOM instanceof Document || DOM instanceof ShadowRoot)) {
+    #observe(DOM) {
+        if (!DOM.observer && (DOM instanceof Document || DOM instanceof ShadowRoot)) {
             const observer = new MutationObserver(mutationsList => {
                 for (const mutation of mutationsList) {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                        this.extractCssVariables(mutation.target.style.cssText)
+                        this.#extract(mutation.target.style.cssText)
                     } else if (mutation.type === 'childList') {
-                        Array.from(mutation.addedNodes)
-                        .forEach(element => {
+                        Array.from(mutation.addedNodes).forEach(element => {
                             if (element.nodeName === 'STYLE' && element.sheet.cssRules[0]) {
                                 var cssRules = []
                                 for (let cssRule of element.sheet.cssRules) {
                                     if (cssRule.cssText) cssRules.push(cssRule.cssText)
                                 }
-                                this.extractCssVariables(cssRules)
+                                this.#extract(cssRules)
                             } else {
-                                this.scanCss(element)
+                                this.scan(element)
                             }
                         })
                     } else if (mutation.type === 'characterData' && mutation.target.parentNode.nodeName === "STYLE" && mutation.target.parentNode.sheet.cssRules[0]) {
@@ -136,39 +117,83 @@ export default class DynamoCSS {
                         for (let cssRule of mutation.target.parentNode.sheet.cssRules) {
                             if (cssRule.cssText) cssRules.push(cssRule.cssText)
                         }
-                        this.extractCssVariables(cssRules)
+                        this.#extract(cssRules)
                     }
                 }
             })
             observer.observe(DOM, { attributes: true, attributeFilter: ['style'], childList: true, subtree: true, characterData: true })
-            DOM.observed = true
+            DOM.observer = observer
         }
     }
 
-    async executeCssVariables() {
-        for (let fun of Object.values(this.registerdFunctions)) {
-            for (let cssVariable of this.cssVariables.filter(v => !fun.executedCssVariables.includes(v))) {
-                try {
-                    const value = await fun(cssVariable)
-                    if (value) document.documentElement.style.setProperty(cssVariable, value)
-                    fun.executedCssVariables.push(cssVariable)
-                } catch(e) {
-                    console.error(e)
-                }
+    #extract(cssRules) {
+        const oldLength = this.variables.length
+        var matches = cssRules.toString().match(/(?:var\()(?: *)(--.+?)(?: *)?(?:,|\))/g)
+        if (matches) {
+            this.variables = [
+                ...new Set(
+                    [
+                        ...matches.map(m => m.replace(/^(?:var\()(?: *)/g, '').replace(/(?: *)?(?:,|\))$/g, '')),
+                        ...this.variables
+                    ]
+                )
+            ]
+        }
+        const newLength = this.variables.length
+        if (oldLength !== newLength) this.#executeAll()
+    }
+
+    #executeAll() {
+        for (let cssVariable of this.variables) {
+            for (let fun of Object.values(this.functions).filter(f => !f.executedVariables.includes(cssVariable))) {
+                this.execute(fun, cssVariable)
             }
         }
+    }
+
+    execute(fun, cssVariable) {
+        try {
+            fun.relativeVariables = []
+            const setValue = value => {
+                return this.setVariable(cssVariable, value)
+            }
+            const getVariable = variable => {
+                if (variable) {
+                    if (!fun.relativeVariables.includes(variable)) fun.relativeVariables.push(variable)
+                    return this.getVariable(variable)
+                } else return false
+            }
+            fun(cssVariable, setValue, getVariable)
+            if (!fun.executedVariables.includes(cssVariable)) fun.executedVariables.push(cssVariable)
+        } catch(e) {
+            console.error(e)
+        }
+    }
+
+    setVariable(variable, value) {
+        const element = document.querySelector(':root')
+        element.style.setProperty(variable, value)
+        for (let fun of Object.values(this.functions).filter(fun => fun.relativeVariables.includes(variable))) {
+            this.execute(fun, variable)
+        }
+        return true
+    }
+
+    getVariable(variable) {
+        const element = document.querySelector(':root')
+        return getComputedStyle(element).getPropertyValue(variable)
     }
 
     registerFunction(id, fun) {
         if (id && typeof id === "string") {
             if (fun instanceof Function) {
-                this.registerdFunctions[id] = fun
-                this.registerdFunctions[id].unregister = () => {
-                    delete this.registerdFunctions[id]
+                this.functions[id] = fun
+                this.functions[id].unregister = () => {
+                    delete this.functions[id]
                 }
-                this.registerdFunctions[id].executedCssVariables = []
-                this.executeCssVariables()
-                return this.registerdFunctions[id]
+                this.functions[id].executedVariables = []
+                this.#executeAll()
+                return this.functions[id]
             } else {
                 console.error('That\'s not a function!')
             }
@@ -179,8 +204,8 @@ export default class DynamoCSS {
 
     unregisterFunction(id) {
         if (id && typeof id === "string") {
-            if (this.registerdFunctions[id]) {
-                delete this.registerdFunctions[id]
+            if (this.functions[id]) {
+                delete this.functions[id]
                 return true
             } else {
                 console.error('Cannot find that function!')
@@ -188,5 +213,21 @@ export default class DynamoCSS {
         } else {
             console.error('Invalid function id!')
         }
+    }
+
+    parseVariable(v) {
+        const fullRegex = /^--((?:[^\W_](?:-[^\W_])?)+)(?:_((?:[^\W_](?:-[^\W_])?)+)--((?:[^\W_](?:-[^\W_])?)+))*/
+        const valuesRegex = /(?:_((?:[^\W_](?:-[^\W_])?)+)--((?:[^\W_](?:-[^\W_])?)+))/g
+        var fullMatch = v.match(fullRegex)
+        if (fullMatch) {
+            var variable = {
+                string: fullMatch[0],
+                name: fullMatch[1],
+                properties: {}
+            }
+            var match
+            while (match = valuesRegex.exec(v)) variable.properties[match[1]] = match[2]
+            return variable
+        } else return false
     }
 }

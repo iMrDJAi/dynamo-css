@@ -2,13 +2,21 @@ import './demo.scss' //Style
 
 window.dc = new DynamoCSS()
 
-dc.registerFunction('colors', v => {
-    const regex = /--color-(.{6})/
-    if (v.match(regex)) return "#" + /--color-(.{6})/.exec(v)[1]
+console.log(dc)
+
+var fun1 = dc.registerFunction('blurple', (v, setValue, getVariable) => {
+    if (v === "--blurple") setValue("#7289DA") 
 })
 
-dc.registerFunction('blurple', d => {
-    if (d === "--blurple") {
-        return "#7289DA"
+console.log(fun1)
+
+var fun2 = dc.registerFunction('color', (v, setValue, getVariable) => {
+    const variable = dc.parseVariable(v)
+    if (variable && variable.name === 'color') {
+        if (variable.properties.hex && variable.properties.hex.match(/^[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3}$/)) {
+            setValue("#" + variable.properties.hex)
+        }
     }
 })
+
+console.log(fun2)
