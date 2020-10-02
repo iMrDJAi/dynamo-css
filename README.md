@@ -96,6 +96,7 @@ var fun = dc.registerFunction('cardHeight', (v, setValue, getVariable) => {
 | v | The css variable string |
 | setValue | Set the value of the passed css variable|
 | getVariable | Get a css variable value relatively |
+
 **To see which relative variables used by the function (returned from `getVariable()`):**  
 **Note:** The system uses this array to execute the function again when a relative variable get updated.
 ```js
