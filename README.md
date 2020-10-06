@@ -169,6 +169,7 @@ It's made to keep processing css variables simpler and faster.
         key2: "value2"
         key3: "value3"
     }
+}
 ```
 **To keep it clear, just imagine it like that:**
 ```css
