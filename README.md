@@ -162,11 +162,11 @@ It's made to keep processing css variables simpler and faster.
 **Output:**
 ```js
 {
-    name: "var-name"
-    string: "--var-name_value1--prop1_value2--prop2_value3--prop3"
-    properties:
-        key1: "value1"
-        key2: "value2"
+    name: "var-name",
+    string: "--var-name_value1--prop1_value2--prop2_value3--prop3",
+    properties: {
+        key1: "value1",
+        key2: "value2",
         key3: "value3"
     }
 }
